@@ -1758,7 +1758,7 @@ public class BlockManager {
     if(numReplicas != null) {
       numReplicas.initialize(live, decommissioned, corrupt, excess, 0);
     }
-    return srcNodes.toArray(new DatanodeDescriptor[numSourceNodes]);
+    return srcNodes.toArray(new DatanodeDescriptor[srcNodes.size()]);
   }
 
   /**
