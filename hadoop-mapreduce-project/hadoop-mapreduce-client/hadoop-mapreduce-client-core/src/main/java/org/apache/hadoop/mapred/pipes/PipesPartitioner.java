@@ -24,6 +24,8 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Partitioner;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import java.io.IOException;
+
 /**
  * This partitioner is one that can either be set manually per a record or it
  * can fall back onto a Java partitioner that was set by the user.
@@ -57,7 +59,7 @@ class PipesPartitioner<K extends WritableComparable,
    * @param numPartitions the number of reduces
    */
   public int getPartition(K key, V value, 
-                          int numPartitions) {
+                          int numPartitions) throws IOException {
     Integer result = cache.get();
     if (result == null) {
       return part.getPartition(key, value, numPartitions);

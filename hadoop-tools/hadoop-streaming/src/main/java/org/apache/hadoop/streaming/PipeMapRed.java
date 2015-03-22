@@ -205,7 +205,9 @@ public abstract class PipeMapRed {
 
       // Start the process
       ProcessBuilder builder = new ProcessBuilder(argvSplit);
+      argSplit_ = argvSplit;
       builder.environment().putAll(childEnv.toMap());
+
       sim = builder.start();
 
       clientOut_ = new DataOutputStream(new BufferedOutputStream(
@@ -613,6 +615,8 @@ public abstract class PipeMapRed {
   DataOutputStream clientOut_;
   DataInputStream clientErr_;
   DataInputStream clientIn_;
+
+  String[] argSplit_;
 
   // set in PipeMapper/PipeReducer subclasses
   int numExceptions_;

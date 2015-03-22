@@ -21,6 +21,8 @@ package org.apache.hadoop.mapred;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 
+import java.io.IOException;
+
 /** 
  * Partitions the key space.
  * 
@@ -48,5 +50,5 @@ public interface Partitioner<K2, V2> extends JobConfigurable {
    * @param numPartitions the total number of partitions.
    * @return the partition number for the <code>key</code>.
    */
-  int getPartition(K2 key, V2 value, int numPartitions);
+  int getPartition(K2 key, V2 value, int numPartitions) throws IOException;
 }

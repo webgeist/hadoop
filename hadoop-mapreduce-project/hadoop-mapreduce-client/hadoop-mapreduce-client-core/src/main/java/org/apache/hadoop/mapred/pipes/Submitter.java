@@ -285,6 +285,7 @@ public class Submitter extends Configured implements Tool {
       conf.setMapRunnerClass(PipesMapRunner.class);
       // Save the user's partitioner and hook in our's.
       setJavaPartitioner(conf, conf.getPartitionerClass());
+      LOG.info("partitioner class ");
       conf.setPartitionerClass(PipesPartitioner.class);
     }
     if (!getIsJavaReducer(conf)) {

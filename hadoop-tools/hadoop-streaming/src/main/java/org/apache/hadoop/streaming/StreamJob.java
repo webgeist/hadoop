@@ -22,13 +22,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -56,7 +54,6 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapred.KeyValueTextInputFormat;
-import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.SequenceFileAsTextInputFormat;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
@@ -326,7 +323,7 @@ public class StreamJob implements Tool {
       inputFormatSpec_ = cmdLine.getOptionValue("inputformat");
       outputFormatSpec_ = cmdLine.getOptionValue("outputformat");
       numReduceTasksSpec_ = cmdLine.getOptionValue("numReduceTasks");
-      partitionerSpec_ = cmdLine.getOptionValue("partitioner");
+      partitionerCmd_ = cmdLine.getOptionValue("partitioner");
       inReaderSpec_ = cmdLine.getOptionValue("inputreader");
       mapDebugSpec_ = cmdLine.getOptionValue("mapdebug");
       reduceDebugSpec_ = cmdLine.getOptionValue("reducedebug");
@@ -524,7 +521,7 @@ public class StreamJob implements Tool {
     System.out.println("  -outputformat   <TextOutputFormat(default)"
         + "|JavaClassName>\n"
         + "                  Optional. The output format class.");
-    System.out.println("  -partitioner    <JavaClassName>  Optional. The"
+    System.out.println("  -partitioner    <cmd|JavaClassName>  Optional. The"
         + " partitioner class.");
     System.out.println("  -numReduceTasks <num> Optional. Number of reduce "
         + "tasks.");
@@ -898,6 +895,9 @@ public class StreamJob implements Tool {
       jobConf_.setOutputValueClass(idResolver.getOutputValueClass());
     }
 
+    idResolver.resolve(jobConf_.get("stream.partition.output",
+        IdentifierResolver.TEXT_ID));
+
     if (inReaderSpec_ != null) {
       String[] args = inReaderSpec_.split(",");
       String readerClass = args[0];
@@ -935,12 +935,17 @@ public class StreamJob implements Tool {
       jobConf_.setOutputFormat(fmt);
     }
 
-    if (partitionerSpec_!= null) {
-      c = StreamUtil.goodClassOrNull(jobConf_, partitionerSpec_, defaultPackage);
+    boolean isPartitionerACommand = false;
+    if (partitionerCmd_ != null) {
+      c = StreamUtil.goodClassOrNull(jobConf_, partitionerCmd_, defaultPackage);
       if (c != null) {
         jobConf_.setPartitionerClass(c);
       } else {
-        fail("-partitioner : class not found : " + partitionerSpec_);
+        isPartitionerACommand = true;
+        jobConf_.setPartitionerClass(PipePartitioner.class);
+        jobConf_.set("stream.partition.streamprocessor", URLEncoder.encode(
+            partitionerCmd_, "UTF-8"));
+        LOG.info("set partitioner command");
       }
     }
 
@@ -1075,7 +1080,7 @@ public class StreamJob implements Tool {
   protected String inReaderSpec_;
   protected String inputFormatSpec_;
   protected String outputFormatSpec_;
-  protected String partitionerSpec_;
+  protected String partitionerCmd_;
   protected String numReduceTasksSpec_;
   protected String additionalConfSpec_;
   protected String mapDebugSpec_;

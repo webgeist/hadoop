@@ -588,9 +588,12 @@ public class MapTask extends Task {
     @SuppressWarnings("unchecked")
     OldOutputCollector(MapOutputCollector<K,V> collector, JobConf conf) {
       numPartitions = conf.getNumReduceTasks();
+      LOG.info("num partitions " + numPartitions);
       if (numPartitions > 1) {
         partitioner = (Partitioner<K,V>)
           ReflectionUtils.newInstance(conf.getPartitionerClass(), conf);
+        partitioner.configure(conf);
+        LOG.info("configure partitioner");
       } else {
         partitioner = new Partitioner<K,V>() {
           @Override
